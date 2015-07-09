@@ -55,7 +55,9 @@ namespace CookComputing.XmlRpc
           string moduleName = "XmlRpcProxy" + guid.ToString() + ".dll";
           string typeName = "XmlRpcProxy" + guid.ToString();
           AssemblyBuilder assBldr = BuildAssembly(itf, assemblyName,
-            moduleName, typeName, AssemblyBuilderAccess.Run);
+						moduleName, typeName, 
+						AssemblyBuilderAccess.Run
+					);
           proxyType = assBldr.GetType(typeName);
           _types.Add(itf, proxyType);
         }
@@ -175,6 +177,7 @@ namespace CookComputing.XmlRpc
       }
       // generate IL
       ILGenerator ilgen = mthdBldr.GetILGenerator();
+
       // if non-void return, declared locals for processing return value
       LocalBuilder retVal = null;
       LocalBuilder tempRetVal = null;
@@ -247,12 +250,22 @@ namespace CookComputing.XmlRpc
         // argCount counts of params before optional AsyncCallback param
         int argCount = paramCount;
         Type[] argTypes = new Type[paramCount];
+
+				string[] paramNames = new string[mi.GetParameters().Length];
+
         for (int i = 0; i < mi.GetParameters().Length; i++)
         {
           argTypes[i] = mi.GetParameters()[i].ParameterType;
+
+					paramNames[i] = mi.GetParameters()[i].Name;
+
           if (argTypes[i] == typeof(System.AsyncCallback))
             argCount = i;
         }
+
+				XmlRpcBeginAttribute battr = (XmlRpcBeginAttribute)Attribute.GetCustomAttribute (mi, typeof(XmlRpcBeginAttribute));
+				bool structParams = battr.StructParams;
+
         MethodBuilder mthdBldr = tb.DefineMethod(
           mi.Name,
           MethodAttributes.Public | MethodAttributes.Virtual,
@@ -262,9 +275,31 @@ namespace CookComputing.XmlRpc
         Type[] oneString = new Type[1] { typeof(string) };
         Type methodAttr = typeof(XmlRpcBeginAttribute);
         ConstructorInfo ci = methodAttr.GetConstructor(oneString);
-        CustomAttributeBuilder cab =
-          new CustomAttributeBuilder(ci, new object[] { mthdData.xmlRpcName });
+
+				PropertyInfo[] pis = new PropertyInfo[] { methodAttr.GetProperty ("StructParams") };
+				object[] structParam = new object[] { structParams };
+
+				CustomAttributeBuilder cab = new CustomAttributeBuilder (ci, new object[] { mthdData.xmlRpcName },
+					                             pis, structParam);
+
         mthdBldr.SetCustomAttribute(cab);
+
+
+				for (int i = 0; i < paramNames.Length; i++)
+				{
+					ParameterBuilder paramBldr = mthdBldr.DefineParameter(i + 1, 
+						ParameterAttributes.In, paramNames[i]);
+					if (i == paramNames.Length - 1 && mthdData.paramsMethod)
+					{
+						ConstructorInfo ctorInfo = typeof(ParamArrayAttribute).GetConstructor(
+							new Type[0]);
+						CustomAttributeBuilder attrBldr =
+							new CustomAttributeBuilder(ctorInfo, new object[0]);
+						paramBldr.SetCustomAttribute(attrBldr);
+					}
+
+				}
+
         // start generating IL
         ILGenerator ilgen = mthdBldr.GetILGenerator();
         // declare variable to store method args and emit code to populate it
@@ -277,15 +312,13 @@ namespace CookComputing.XmlRpc
           ilgen.Emit(OpCodes.Ldloc, argValues);
           ilgen.Emit(OpCodes.Ldc_I4, argLoad);
           ilgen.Emit(OpCodes.Ldarg, argLoad + 1);
-          ParameterInfo pi = mi.GetParameters()[argLoad];
-          string paramTypeName = pi.ParameterType.AssemblyQualifiedName;
-          paramTypeName = paramTypeName.Replace("&", "");
-          Type paramType = Type.GetType(paramTypeName);
-          if (paramType.IsValueType)
-          {
-            ilgen.Emit(OpCodes.Box, paramType);
-          }
-          ilgen.Emit(OpCodes.Stelem_Ref);
+
+					if (argTypes[argLoad].IsValueType)
+					{
+						ilgen.Emit(OpCodes.Box, argTypes[argLoad]);
+					}
+					ilgen.Emit(OpCodes.Stelem_Ref);
+
         }
         // emit code to store AsyncCallback parameter, defaulting to null 
         // if not in method signature

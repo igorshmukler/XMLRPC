@@ -2000,7 +2000,14 @@ namespace CookComputing.XmlRpc
       {
         XmlRpcMethodAttribute mattr = (XmlRpcMethodAttribute)attr;
         ret = mattr.StructParams;
-      }
+      } 
+			else {
+				attr = Attribute.GetCustomAttribute (mi, typeof(XmlRpcBeginAttribute));
+				if (null != attr) {
+					XmlRpcBeginAttribute battr = (XmlRpcBeginAttribute)attr;
+					ret = battr.StructParams;
+				}
+			}
       return ret;
     }
 

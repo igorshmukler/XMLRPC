@@ -1,4 +1,4 @@
-/* 
+﻿/* 
 XML-RPC.NET library
 Copyright (c) 2001-2006, Charles Cook <charlescook@cookcomputing.com>
 
@@ -25,49 +25,55 @@ DEALINGS IN THE SOFTWARE.
 
 namespace CookComputing.XmlRpc
 {
-  using System;
+	using System;
 
-  [AttributeUsage(AttributeTargets.Method)]
-  public class XmlRpcBeginAttribute : Attribute
-  {
-    public XmlRpcBeginAttribute()
-    {
-    }
+	[AttributeUsage(AttributeTargets.Method)]
+	public class XmlRpcBeginAttribute : Attribute
+	{
+		public XmlRpcBeginAttribute()
+		{
+		}
 
-    public XmlRpcBeginAttribute(string method)
-    {
-      this.method = method;
-    }
+		public XmlRpcBeginAttribute(string method)
+		{
+			this.method = method;
+		}
 
-    public string Method 
-    {
-      get 
-      { return method; }
-    }
+		public string Method 
+		{
+			get
+			{ return method; }
+		}
 
-    public Type ReturnType 
-    {
-      get { return returnType; }
-      set { returnType = value; }
-    }
+		public Type ReturnType
+		{
+			get { return returnType; }
+			set { returnType = value; }
+		}
 
-    public bool IntrospectionMethod 
-    {
-      get { return introspectionMethod; }
-      set { introspectionMethod = value; }
-    }
+		public bool IntrospectionMethod
+		{
+			get { return introspectionMethod; }
+			set { introspectionMethod = value; }
+		}
 
-    public override string ToString()
-    {
-      string value = "Method : " + method;
-      return value;
-    }
+		public bool StructParams
+		{
+			get { return structParams; }
+			set { structParams = value; }
+		}
 
-    public string Description = "";
-    public bool Hidden = false;
-    private string method = "";
-    private bool introspectionMethod = false;
-    private Type returnType = null;
-  }
+		public override string ToString()
+		{
+			string value = "Method : " + method;
+			return value;
+		}
+
+		public string Description = "";
+		public bool Hidden = false;
+		private string method = "";
+		private bool introspectionMethod = false;
+		private Type returnType = null;
+		private bool structParams = false;
+	}
 }
-
