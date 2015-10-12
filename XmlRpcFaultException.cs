@@ -23,6 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
 
+using System.Security;
+
 namespace CookComputing.XmlRpc
 {
   using System;
@@ -69,9 +71,10 @@ namespace CookComputing.XmlRpc
       get { return m_faultString; } 
     }
 #if (!COMPACT_FRAMEWORK)
-    // public methods
-    //
-    public override void GetObjectData(
+        // public methods
+        //
+        [SecurityCritical]
+        public override void GetObjectData(
       SerializationInfo info, 
       StreamingContext context)
     {
