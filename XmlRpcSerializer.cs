@@ -507,22 +507,22 @@ namespace CookComputing.XmlRpc
       }
       XmlDocument xdoc = new XmlDocument();
       xdoc.PreserveWhitespace = true;
-      try
-      {
-        using (XmlTextReader xmlRdr = new XmlTextReader(stm))
+        try
         {
+            var xmlRdr = new XmlTextReader(stm);
+
 #if (!COMPACT_FRAMEWORK)
-          xmlRdr.ProhibitDtd = true;
+            xmlRdr.ProhibitDtd = true;
 #endif
-          xdoc.Load(xmlRdr);
+            xdoc.Load(xmlRdr);
+
         }
-      }
-      catch (Exception ex)
-      {
-        throw new XmlRpcIllFormedXmlException(
-          "Response from server does not contain valid XML.", ex);
-      }
-      return DeserializeResponse(xdoc, svcType);
+        catch (Exception ex)
+        {
+            throw new XmlRpcIllFormedXmlException(
+                "Response from server does not contain valid XML.", ex);
+        }
+        return DeserializeResponse(xdoc, svcType);
     }
 
     public XmlRpcResponse DeserializeResponse(TextReader txtrdr, Type svcType)
