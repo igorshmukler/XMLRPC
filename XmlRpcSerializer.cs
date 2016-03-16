@@ -491,15 +491,18 @@ namespace CookComputing.XmlRpc
         Util.CopyStream(stm, newStm);
         stm = newStm;
         stm.Position = 0;
+        // watta 15-03-2016 altered "invalid http content" option to skip
+        // all non-"<" characters so we skip other data (e.g. Byte Order Mark) from server.
         while (true)
         {
-          // for now just strip off any leading CR-LF characters
+          // Hunt for the first "<" - this is our exit criteria.
           int byt = stm.ReadByte();
-          if (byt == -1)
+          if (byt == -1) // read error of somekind
             throw new XmlRpcIllFormedXmlException(
               "Response from server does not contain valid XML.");
-          if (byt != 0x0d && byt != 0x0a && byt != ' ' && byt != '\t')
+          if (byt == '<')
           {
+            // Back-pedal to start of xml document.
             stm.Position = stm.Position - 1;
             break;
           }
